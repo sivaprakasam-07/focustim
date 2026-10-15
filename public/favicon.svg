@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F172A"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#818CF8"/>
+      <stop offset="50%" stop-color="#6366F1"/>
+      <stop offset="100%" stop-color="#06B6D4"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="12" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+  <!-- Background with rounded corners -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)"/>
+  
+  <!-- Outer glowing ring track -->
+  <circle cx="256" cy="256" r="160" fill="none" stroke="#1E293B" stroke-width="24"/>
+  
+  <!-- Glowing active ring segment -->
+  <circle cx="256" cy="256" r="160" fill="none" stroke="url(#ringGrad)" stroke-width="24"
+    stroke-linecap="round" stroke-dasharray="1005" stroke-dashoffset="250"
+    transform="rotate(-90 256 256)" filter="url(#glow)"/>
+    
+  <!-- Center Focus Symbol (Minimal Hourglass / Flame) -->
+  <circle cx="256" cy="256" r="18" fill="#38BDF8" />
+  <path d="M 256 160 V 210 M 256 302 V 352 M 160 256 H 210 M 302 256 H 352" stroke="#64748B" stroke-width="8" stroke-linecap="round"/>
+  
+  <!-- Inner pulse ring -->
+  <circle cx="256" cy="256" r="64" fill="none" stroke="#818CF8" stroke-width="6" opacity="0.4" stroke-dasharray="12 12"/>
+</svg>
