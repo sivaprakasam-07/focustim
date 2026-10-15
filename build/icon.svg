@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Deep black background -->
+  <rect width="512" height="512" rx="112" fill="#000000"/>
+  
+  <!-- Inactive track ring #292929 -->
+  <circle cx="256" cy="256" r="160" fill="none" stroke="#292929" stroke-width="26"/>
+  
+  <!-- Active pure white ring segment #FFFFFF -->
+  <circle cx="256" cy="256" r="160" fill="none" stroke="#FFFFFF" stroke-width="26"
+    stroke-linecap="round" stroke-dasharray="1005" stroke-dashoffset="250"
+    transform="rotate(-90 256 256)"/>
+    
+  <!-- Center Focus Minimal Dot -->
+  <circle cx="256" cy="256" r="18" fill="#FFFFFF" />
+  
+  <!-- Subtle minimal crosshairs in #505050 -->
+  <path d="M 256 160 V 205 M 256 307 V 352 M 160 256 H 205 M 307 256 H 352" stroke="#505050" stroke-width="8" stroke-linecap="round"/>
+</svg>
