@@ -13,6 +13,8 @@ import {
   playCompletionChime,
   triggerCompletionVibration,
 } from '../utils/sound';
+import { sessionService } from '../utils/sessionService';
+import type { FocusSession } from '../types/session';
 import { useWakeLock } from './useWakeLock';
 
 export function useTimer() {
@@ -33,8 +35,21 @@ export function useTimer() {
   useEffect(() => {
     if (session.wasExpiredInBackground && session.state.sessionId) {
       completedSessionsRef.current.add(session.state.sessionId);
+      // Record completed session if expired in background
+      const totalSec = Math.round(session.state.targetDurationMs / 1000);
+      const record: FocusSession = {
+        id: session.state.sessionId,
+        mode: 'countdown',
+        startedAt: session.state.sessionStartedAt ?? (Date.now() - session.state.targetDurationMs),
+        endedAt: Date.now(),
+        durationSeconds: totalSec,
+        targetDurationSeconds: totalSec,
+        completed: true,
+        createdAt: Date.now(),
+      };
+      sessionService.saveSession(record);
     }
-  }, [session.wasExpiredInBackground, session.state.sessionId]);
+  }, [session.wasExpiredInBackground, session.state.sessionId, session.state.targetDurationMs, session.state.sessionStartedAt]);
 
   // Request/release wake lock based on timer state and user preference
   useEffect(() => {
@@ -58,14 +73,30 @@ export function useTimer() {
     }
     completedSessionsRef.current.add(sessionId);
 
+    const completionTime = Date.now();
+    const durationSeconds = Math.round(finishedState.targetDurationMs / 1000);
+
     setState((prev) => ({
       ...prev,
       status: 'completed',
       startTimestamp: null,
       pauseTimestamp: null,
       accumulatedElapsedMs: prev.targetDurationMs,
-      completedAt: Date.now(),
+      completedAt: completionTime,
     }));
+
+    // Record completed focus session in storage
+    const record: FocusSession = {
+      id: sessionId,
+      mode: 'countdown',
+      startedAt: finishedState.sessionStartedAt ?? (completionTime - finishedState.targetDurationMs),
+      endedAt: completionTime,
+      durationSeconds,
+      targetDurationSeconds: durationSeconds,
+      completed: true,
+      createdAt: completionTime,
+    };
+    sessionService.saveSession(record);
 
     if (preferences.soundEnabled) {
       playCompletionChime();
@@ -149,6 +180,7 @@ export function useTimer() {
       return {
         ...prev,
         status: 'running',
+        sessionStartedAt: shouldReset ? currentNow : (prev.sessionStartedAt ?? currentNow),
         startTimestamp: currentNow,
         accumulatedElapsedMs: shouldReset ? 0 : prev.accumulatedElapsedMs,
         pauseTimestamp: null,
@@ -187,7 +219,7 @@ export function useTimer() {
     start();
   }, [start]);
 
-  // Action: Reset
+  // Action: Reset (without recording)
   const reset = useCallback(() => {
     const currentNow = Date.now();
     setNow(currentNow);
@@ -195,6 +227,7 @@ export function useTimer() {
     setState((prev) => ({
       ...prev,
       status: 'idle',
+      sessionStartedAt: null,
       startTimestamp: null,
       pauseTimestamp: null,
       accumulatedElapsedMs: 0,
@@ -202,6 +235,30 @@ export function useTimer() {
       sessionId: `session_${currentNow}_${Math.random().toString(36).substring(2, 7)}`,
     }));
   }, []);
+
+  // Action: Finish Stopwatch explicitly and save the session
+  const finishStopwatch = useCallback(() => {
+    const currentNow = Date.now();
+    const elapsedMs = calculateElapsedMs(state, currentNow);
+    const durationSeconds = Math.round(elapsedMs / 1000);
+
+    // Save only genuine focus sessions (>= 5s)
+    if (durationSeconds >= 5) {
+      const record: FocusSession = {
+        id: state.sessionId,
+        mode: 'stopwatch',
+        startedAt: state.sessionStartedAt ?? (currentNow - elapsedMs),
+        endedAt: currentNow,
+        durationSeconds,
+        targetDurationSeconds: 0,
+        completed: true,
+        createdAt: currentNow,
+      };
+      sessionService.saveSession(record);
+    }
+
+    reset();
+  }, [state, reset]);
 
   // Action: Set Countdown Preset Duration
   const setCountdownDuration = useCallback((minutes: number) => {
@@ -280,6 +337,7 @@ export function useTimer() {
     pause,
     resume,
     reset,
+    finishStopwatch,
     setCountdownDuration,
     switchMode,
     toggleSound,

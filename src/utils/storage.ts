@@ -15,6 +15,7 @@ export function createInitialTimerState(presetMinutes: number = 25): TimerState 
     mode: 'countdown',
     targetDurationMs: presetMinutes * 60 * 1000,
     status: 'idle',
+    sessionStartedAt: null,
     startTimestamp: null,
     accumulatedElapsedMs: 0,
     pauseTimestamp: null,

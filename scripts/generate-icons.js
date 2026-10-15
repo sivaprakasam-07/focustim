@@ -11,46 +11,30 @@ if (!fs.existsSync(publicDir)) {
   fs.mkdirSync(publicDir, { recursive: true });
 }
 
-// Generate an SVG icon
+// Generate pure black-and-white monochrome SVG icon
 const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <defs>
-    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0F172A"/>
-      <stop offset="100%" stop-color="#020617"/>
-    </linearGradient>
-    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#818CF8"/>
-      <stop offset="50%" stop-color="#6366F1"/>
-      <stop offset="100%" stop-color="#06B6D4"/>
-    </linearGradient>
-    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="12" result="blur" />
-      <feComposite in="SourceGraphic" in2="blur" operator="over" />
-    </filter>
-  </defs>
-  <!-- Background with rounded corners -->
-  <rect width="512" height="512" rx="112" fill="url(#bgGrad)"/>
+  <!-- Deep black background -->
+  <rect width="512" height="512" rx="112" fill="#000000"/>
   
-  <!-- Outer glowing ring track -->
-  <circle cx="256" cy="256" r="160" fill="none" stroke="#1E293B" stroke-width="24"/>
+  <!-- Inactive track ring #292929 -->
+  <circle cx="256" cy="256" r="160" fill="none" stroke="#292929" stroke-width="26"/>
   
-  <!-- Glowing active ring segment -->
-  <circle cx="256" cy="256" r="160" fill="none" stroke="url(#ringGrad)" stroke-width="24"
+  <!-- Active pure white ring segment #FFFFFF -->
+  <circle cx="256" cy="256" r="160" fill="none" stroke="#FFFFFF" stroke-width="26"
     stroke-linecap="round" stroke-dasharray="1005" stroke-dashoffset="250"
-    transform="rotate(-90 256 256)" filter="url(#glow)"/>
+    transform="rotate(-90 256 256)"/>
     
-  <!-- Center Focus Symbol (Minimal Hourglass / Flame) -->
-  <circle cx="256" cy="256" r="18" fill="#38BDF8" />
-  <path d="M 256 160 V 210 M 256 302 V 352 M 160 256 H 210 M 302 256 H 352" stroke="#64748B" stroke-width="8" stroke-linecap="round"/>
+  <!-- Center Focus Minimal Dot -->
+  <circle cx="256" cy="256" r="18" fill="#FFFFFF" />
   
-  <!-- Inner pulse ring -->
-  <circle cx="256" cy="256" r="64" fill="none" stroke="#818CF8" stroke-width="6" opacity="0.4" stroke-dasharray="12 12"/>
+  <!-- Subtle minimal crosshairs in #505050 -->
+  <path d="M 256 160 V 205 M 256 307 V 352 M 160 256 H 205 M 307 256 H 352" stroke="#505050" stroke-width="8" stroke-linecap="round"/>
 </svg>`;
 
 fs.writeFileSync(path.join(publicDir, 'icon.svg'), svgContent, 'utf-8');
 fs.writeFileSync(path.join(publicDir, 'favicon.svg'), svgContent, 'utf-8');
 
-// Function to draw pixel-by-pixel PNG
+// Function to draw pixel-by-pixel pure monochrome PNG
 function generatePng(size, filename) {
   const png = new PNG({ width: size, height: size });
   const center = size / 2;
@@ -75,15 +59,10 @@ function generatePng(size, filename) {
         continue;
       }
 
-      // Background gradient (Dark slate/indigo #0B0F19 to #030712)
-      const grad = (x + y) / (2 * size);
-      const bgR = Math.round(14 * (1 - grad) + 3 * grad);
-      const bgG = Math.round(20 * (1 - grad) + 7 * grad);
-      const bgB = Math.round(35 * (1 - grad) + 18 * grad);
-
-      let r = bgR;
-      let g = bgG;
-      let b = bgB;
+      // Pure deep black background (#000000)
+      let r = 0;
+      let g = 0;
+      let b = 0;
       let a = 255;
 
       // Circle distance
@@ -93,29 +72,28 @@ function generatePng(size, filename) {
 
       // Ring track
       if (dist >= radius - thickness / 2 && dist <= radius + thickness / 2) {
-        // Track background
-        r = 30;
+        // Inactive track (#292929)
+        r = 41;
         g = 41;
-        b = 59;
+        b = 41;
 
-        // Angle for arc (progress 75%)
+        // Angle for arc (progress ~75%)
         let angle = Math.atan2(dy, dx) + Math.PI / 2;
         if (angle < 0) angle += 2 * Math.PI;
 
         if (angle < Math.PI * 1.5) {
-          // Arc gradient from indigo (#818CF8) to cyan (#06B6D4)
-          const t = angle / (Math.PI * 1.5);
-          r = Math.round(129 * (1 - t) + 6 * t);
-          g = Math.round(140 * (1 - t) + 182 * t);
-          b = Math.round(248 * (1 - t) + 212 * t);
+          // Pure white active arc (#FFFFFF)
+          r = 255;
+          g = 255;
+          b = 255;
         }
       }
 
       // Center dot
       if (dist <= size * 0.045) {
-        r = 56;
-        g = 189;
-        b = 248;
+        r = 255;
+        g = 255;
+        b = 255;
       }
 
       png.data[idx] = r;

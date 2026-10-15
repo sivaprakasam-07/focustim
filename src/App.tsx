@@ -11,8 +11,12 @@ import { TimerControls } from './components/TimerControls';
 import { ConfirmModal } from './components/ConfirmModal';
 import { CustomDurationModal } from './components/CustomDurationModal';
 import { InstallModal } from './components/InstallModal';
+import { FocusHistoryView } from './components/FocusHistoryView';
 
 export function App() {
+  // Navigation view: 'timer' (default) or 'history'
+  const [currentView, setCurrentView] = useState<'timer' | 'history'>('timer');
+
   const {
     state,
     preferences,
@@ -23,6 +27,7 @@ export function App() {
     pause,
     resume,
     reset,
+    finishStopwatch,
     setCountdownDuration,
     switchMode,
     toggleSound,
@@ -114,16 +119,16 @@ export function App() {
     }
   }, [state.status, setCountdownDuration]);
 
-  // Global Keyboard Shortcuts
+  // Global Keyboard Shortcuts (active when on timer view and not typing)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Don't intercept when typing in inputs or when modals are open
       if (
         e.target instanceof HTMLInputElement ||
         e.target instanceof HTMLTextAreaElement ||
         confirmConfig.isOpen ||
         isCustomDurationOpen ||
-        isInstallModalOpen
+        isInstallModalOpen ||
+        currentView !== 'timer'
       ) {
         return;
       }
@@ -152,6 +157,7 @@ export function App() {
     confirmConfig.isOpen,
     isCustomDurationOpen,
     isInstallModalOpen,
+    currentView,
     start,
     pause,
     resume,
@@ -174,50 +180,60 @@ export function App() {
 
   return (
     <div className="app-container">
-      <Header
-        statusLabel={calculations.statusLabel}
-        isFullscreen={isFullscreen}
-        isFullscreenSupported={isFullscreenSupported}
-        isWakeLockActive={isWakeLockActive}
-        isWakeLockPreferred={preferences.wakeLockPreferred}
-        isWakeLockSupported={isWakeLockSupported}
-        isSoundEnabled={preferences.soundEnabled}
-        isInstallable={isInstallable}
-        onToggleFullscreen={toggleFullscreen}
-        onToggleWakeLock={toggleWakeLockPreference}
-        onToggleSound={toggleSound}
-        onOpenInstallModal={() => setIsInstallModalOpen(true)}
-      />
-
-      <main className="main-stage">
-        <ModeSelector
-          currentMode={state.mode}
-          status={state.status}
-          onRequestChangeMode={handleRequestChangeMode}
-        />
-
-        {state.mode === 'countdown' && (
-          <DurationSelector
-            selectedMinutes={preferences.selectedPresetMinutes}
-            status={state.status}
-            onRequestSelectDuration={handleRequestSelectDuration}
-            onOpenCustomModal={() => setIsCustomDurationOpen(true)}
+      {currentView === 'history' ? (
+        <FocusHistoryView onBackToTimer={() => setCurrentView('timer')} />
+      ) : (
+        <>
+          <Header
+            statusLabel={calculations.statusLabel}
+            isFullscreen={isFullscreen}
+            isFullscreenSupported={isFullscreenSupported}
+            isWakeLockActive={isWakeLockActive}
+            isWakeLockPreferred={preferences.wakeLockPreferred}
+            isWakeLockSupported={isWakeLockSupported}
+            isSoundEnabled={preferences.soundEnabled}
+            isInstallable={isInstallable}
+            onToggleFullscreen={toggleFullscreen}
+            onToggleWakeLock={toggleWakeLockPreference}
+            onToggleSound={toggleSound}
+            onOpenInstallModal={() => setIsInstallModalOpen(true)}
+            onNavigateToHistory={() => setCurrentView('history')}
           />
-        )}
 
-        <CircularTimer
-          state={state}
-          calculations={calculations}
-        />
-      </main>
+          <main className="main-stage">
+            <ModeSelector
+              currentMode={state.mode}
+              status={state.status}
+              onRequestChangeMode={handleRequestChangeMode}
+            />
 
-      <TimerControls
-        status={state.status}
-        onStart={start}
-        onPause={pause}
-        onResume={resume}
-        onRequestReset={handleRequestReset}
-      />
+            {state.mode === 'countdown' && (
+              <DurationSelector
+                selectedMinutes={preferences.selectedPresetMinutes}
+                status={state.status}
+                onRequestSelectDuration={handleRequestSelectDuration}
+                onOpenCustomModal={() => setIsCustomDurationOpen(true)}
+              />
+            )}
+
+            <CircularTimer
+              state={state}
+              calculations={calculations}
+            />
+          </main>
+
+          <TimerControls
+            mode={state.mode}
+            status={state.status}
+            elapsedMs={calculations.elapsedMs}
+            onStart={start}
+            onPause={pause}
+            onResume={resume}
+            onRequestReset={handleRequestReset}
+            onFinishStopwatch={finishStopwatch}
+          />
+        </>
+      )}
 
       {/* Confirmation Safeguard Modal */}
       <ConfirmModal

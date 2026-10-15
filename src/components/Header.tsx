@@ -14,6 +14,7 @@ interface HeaderProps {
   onToggleWakeLock: () => void;
   onToggleSound: () => void;
   onOpenInstallModal: () => void;
+  onNavigateToHistory: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -29,6 +30,7 @@ export const Header: React.FC<HeaderProps> = ({
   onToggleWakeLock,
   onToggleSound,
   onOpenInstallModal,
+  onNavigateToHistory,
 }) => {
   return (
     <header className="app-header">
@@ -44,6 +46,22 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
 
       <div className="header-actions">
+        {/* Navigation to Focus History */}
+        <button
+          type="button"
+          className="icon-btn btn-history-nav"
+          onClick={onNavigateToHistory}
+          aria-label="View Focus History and Analytics"
+          title="Focus History & Heatmap"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="3" width="7" height="7" />
+            <rect x="14" y="3" width="7" height="7" />
+            <rect x="14" y="14" width="7" height="7" />
+            <rect x="3" y="14" width="7" height="7" />
+          </svg>
+        </button>
+
         {/* Sound Toggle */}
         <button
           type="button"
@@ -70,7 +88,7 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Screen Awake Toggle */}
         <button
           type="button"
-          className={`icon-btn ${isWakeLockActive ? 'active glow-teal' : isWakeLockPreferred ? 'active' : ''}`}
+          className={`icon-btn ${isWakeLockActive ? 'active' : isWakeLockPreferred ? 'active' : ''}`}
           onClick={onToggleWakeLock}
           aria-label={
             !isWakeLockSupported
@@ -100,7 +118,7 @@ export const Header: React.FC<HeaderProps> = ({
             <path d="m6.34 17.66-1.41 1.41" />
             <path d="m19.07 4.93-1.41 1.41" />
           </svg>
-          {isWakeLockActive && <span className="active-glow-dot" />}
+          {isWakeLockActive && <span className="active-dot" />}
         </button>
 
         {/* Fullscreen Toggle */}
@@ -133,7 +151,7 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Install App button / guide */}
         <button
           type="button"
-          className={`icon-btn ${isInstallable ? 'btn-install-badge' : ''}`}
+          className="icon-btn"
           onClick={onOpenInstallModal}
           aria-label="Install FocusFlow Web App"
           title="Install app to Home Screen"
